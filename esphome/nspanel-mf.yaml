@@ -309,7 +309,7 @@ text_sensor:
             } else if (id(weather_symbol).state == "windy" || id(weather_symbol).state == "windy-variant") {
               symbol=19;              
             }
-            id(disp1).send_command_printf("weather_symbol.pic=%i", symbol);
+            id(disp1).send_command_printf("Home.weather_symbol.pic=%i", symbol);
     
 number:
   platform: template
