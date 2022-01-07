@@ -1,0 +1,341 @@
+substitutions:
+  device_name: nspanel-dev
+
+# Example config.yaml
+esphome:
+  name: nspanel
+  comment: $device_name
+
+esp32:
+  board: esp32dev
+
+wifi:
+  ssid: !secret ssid
+  password: !secret wifi_pwd
+  fast_connect: !secret wifi_fast_connect
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      - seconds: 0
+        minutes: /1
+        then:
+          - lambda: id(disp1).set_component_text_printf("Home.time", "%02i:%02i", id(homeassistant_time).now().hour, id(homeassistant_time).now().minute);
+          - lambda: id(disp1).set_component_text_printf("Home.date", "%i-%02i-%02i", id(homeassistant_time).now().year, id(homeassistant_time).now().month, id(homeassistant_time).now().day_of_month);
+          - lambda: id(disp1).set_component_text_printf("Home.temp", "%.1f", id(current_temperature).state);
+          - lambda: id(disp1).set_component_text_printf("Home.tempfl", "%.1f", id(temp_feelslike).state);
+
+api:
+  password: !secret api_pwd
+  services:
+    # Service to play a song
+    - service: play_rtttl
+      variables:
+        song_str: string
+      then:
+        - rtttl.play:
+            rtttl: !lambda 'return song_str;'
+    - service: upload_tft
+      then:
+        - lambda: 'id(disp1)->upload_tft();'
+
+logger:
+  baud_rate: 0
+  level: DEBUG
+
+ota:
+  password: !secret ota_pwd
+
+uart:
+  tx_pin: 16
+  rx_pin: 17
+  baud_rate: 115200
+  id: tf_uart
+
+external_components:
+  - source: github://pr#2956
+    components: [nextion]
+    refresh: 1h
+
+# A reboot button is always useful
+button:
+  - platform: restart
+    name: $device_name Restart    
+
+binary_sensor:
+  - platform: gpio
+    name: $device_name Left Button
+    pin:
+      number: 14
+      inverted: true
+    on_click:
+      - switch.toggle: relay_1
+
+  - platform: gpio
+    name: $device_name Right Button
+    pin:
+      number: 27
+      inverted: true
+    on_click:
+      - switch.toggle: relay_2
+      
+  - platform: nextion
+    name: $device_name Music previous
+    page_id: 1
+    component_id: 1
+
+  - platform: nextion
+    name: $device_name Music play pause
+    page_id: 1
+    component_id: 2
+
+  - platform: nextion
+    name: $device_name Music next
+    page_id: 1
+    component_id: 3
+
+  - platform: nextion
+    name: $device_name Music cast
+    page_id: 1
+    component_id: 4
+
+  - platform: nextion
+    name: $device_name Music voldown
+    page_id: 1
+    component_id: 9
+    
+  - platform: nextion
+    name: $device_name Music volup
+    page_id: 1
+    component_id: 10
+    
+  - platform: nextion
+    name: $device_name Playlist cocktail
+    page_id: 1
+    component_id: 11
+
+  - platform: nextion
+    name: $device_name Playlist food
+    page_id: 1
+    component_id: 12
+    
+  - platform: nextion
+    name: $device_name Playlist dance
+    page_id: 1
+    component_id: 13
+
+  - platform: nextion
+    name: $device_name Playlist note
+    page_id: 1
+    component_id: 14    
+
+output:
+  - platform: ledc
+    id: buzzer_out
+    pin:
+      number: 21
+
+switch:
+  - platform: gpio
+    name: $device_name Relay 1
+    id: relay_1
+    pin:
+      number: 22
+
+  - platform: gpio
+    name: $device_name Relay 2
+    id: relay_2
+    pin:
+      number: 19
+
+  - platform: gpio
+    name: $device_name Screen Power
+    id: screen_power
+    entity_category: config
+    pin:
+      number: 4
+      inverted: true
+    restore_mode: ALWAYS_ON
+
+  - platform: template
+    name: $device_name Energy Saving Mode
+    id: eco_mode
+    entity_category: config
+    restore_state: true
+    optimistic: true
+
+rtttl:
+  id: buzzer
+  output: buzzer_out
+
+sensor:
+  - platform: adc
+    id: ntc_source
+    pin: 38
+    update_interval: 10s
+    attenuation: 11db
+
+  - platform: resistance
+    id: resistance_sensor
+    sensor: ntc_source
+    configuration: DOWNSTREAM
+    resistor: 11.2kOhm
+
+  - platform: ntc
+    id: temperature
+    sensor: resistance_sensor
+    calibration:
+      b_constant: 3950
+      reference_temperature: 25°C
+      reference_resistance: 10kOhm
+    name: $device_name Temperature
+    
+  - platform: uptime
+    name: $device_name Uptime Sensor
+    id: uptime_sensor
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+                int seconds = round(id(uptime_sensor).raw_state);
+                int days = seconds / (24 * 3600);
+                seconds = seconds % (24 * 3600);
+                int hours = seconds / 3600;
+                seconds = seconds % 3600;
+                int minutes = seconds /  60;
+                seconds = seconds % 60;
+                return (
+                  (days ? to_string(days) + "d " : "") +
+                  (hours ? to_string(hours) + "h " : "") +
+                  (minutes ? to_string(minutes) + "m " : "") +
+                  (to_string(seconds) + "s")
+                ).c_str();
+
+  - platform: wifi_signal
+    name: $device_name WiFi Signal Sensor
+    update_interval: 60s
+    
+  - platform: nextion
+    id: screen_current_page
+    variable_name: dp
+    
+  - platform: homeassistant
+    id: current_temperature
+    entity_id: weather.home
+    attribute: temperature
+    on_value:
+      # Push it to the display
+      then:
+        - lambda: id(disp1).set_component_text_printf("Home.temp", "%.1f", id(current_temperature).state);
+        
+  - platform: homeassistant
+    id: temp_feelslike
+    entity_id: sensor.home_temperature_feels_like
+    on_value:
+      # Push it to the display
+      then:
+        - lambda: id(disp1).set_component_text_printf("Home.tempfl", "%.1f", id(temp_feelslike).state);
+
+text_sensor:
+  - platform: template
+    name: $device_name Uptime Human Readable
+    id: uptime_human
+    icon: mdi:clock-start
+
+  - platform: version
+    name: $device_name ESPHome Version
+
+  - platform: homeassistant
+    id: music_artist
+    entity_id: media_player.sonos_vardagsrum
+    attribute: media_artist
+    on_value:
+      then:
+        - lambda: id(disp1).set_component_text_printf("Music.music_sn", "%s", id(music_artist).state.c_str());
+
+  - platform: homeassistant
+    id: music_title
+    entity_id: media_player.sonos_vardagsrum
+    attribute: media_title
+    on_value:
+      then:
+        - lambda: id(disp1).set_component_text_printf("Music.music_an", "%s", id(music_title).state.c_str());
+
+  - platform: homeassistant
+    id: sun_sun
+    entity_id: sun.sun
+
+  - platform: homeassistant
+    id: weather_symbol
+    entity_id: weather.home
+    on_value:
+      then:
+        - lambda: |-
+            int symbol=5; // 5 is a empty box.
+            if (id(weather_symbol).state == "clear-night") {
+              symbol=6;
+            } else if (id(weather_symbol).state == "cloudy") {
+              symbol=7;
+              if (id(sun_sun).state == "below_horizon") {
+                symbol=8;
+              }
+            } else if (id(weather_symbol).state == "fog") {
+              symbol=9;
+            } else if (id(weather_symbol).state == "hail" || id(weather_symbol).state == "snowy-rainy") {
+              symbol=10;
+            } else if (id(weather_symbol).state == "lightning") {
+              symbol=11;
+            } else if (id(weather_symbol).state == "lightning-rainy" || id(weather_symbol).state == "exceptional") {
+              symbol=12;
+              if (id(sun_sun).state == "below_horizon") {
+                symbol=13;
+              }
+            } else if (id(weather_symbol).state == "partlycloudy") {
+              symbol=14;
+              if (id(sun_sun).state == "below_horizon") {
+                symbol=8;
+              }
+            } else if (id(weather_symbol).state == "pouring") {
+              symbol=15;
+            } else if (id(weather_symbol).state == "rainy") {
+              symbol=16;
+            } else if (id(weather_symbol).state == "snowy") {
+              symbol=17;
+            } else if (id(weather_symbol).state == "sunny") {
+              symbol=18;
+            } else if (id(weather_symbol).state == "windy" || id(weather_symbol).state == "windy-variant") {
+              symbol=19;              
+            }
+            id(disp1).send_command_printf("weather_symbol.pic=%i", symbol);
+    
+number:
+  platform: template
+  name: $device_name Brightness
+  id: brightness
+  entity_category: config
+  unit_of_measurement: '%'
+  min_value: 0
+  max_value: 100
+  step: 1
+  initial_value: 30
+  set_action:
+    then:
+      - lambda: 'id(disp1).set_backlight_brightness(x/100);'
+      
+# Configure the screen itself
+display:
+  - platform: nextion
+    id: disp1
+    uart_id: tf_uart
+    tft_url: !secret nextion_update_url
+    # A little fun...
+    on_setup:
+      then:
+        - number.set:
+            id: brightness
+            value: 30
+
+#        - rtttl.play: "twobits:d=4,o=5,b=220:c6,8g,8g,a,g,p,b,c6"
