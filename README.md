@@ -15,6 +15,8 @@ Other icons are from [Material Design Icons](https://materialdesignicons.com/)
 
 The font is the Ubuntu font.
 
+The ESPHome config yaml is based on [Masto's example config](https://github.com/masto/NSPanel-Demo-Files)
+
 ## HMI Screenshots
 ![Home screen](screenshot-home.png)
 ![Music screen](screenshot-music.png)
