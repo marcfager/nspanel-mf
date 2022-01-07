@@ -19,8 +19,11 @@ The ESPHome config yaml is based on [Masto's example config](https://github.com/
 
 ## HMI Screenshots
 ![Home screen](screenshot-home.png)
+
 ![Music screen](screenshot-music.png)
+
 ![HA Sensors](screenshot-ha-sensors.png)
+
 _Not all exposed entities are visible on the screenshot._ 
 _The items look slightly poorly centered. This is to cope with the issue that the physical screen is larger than the visible area._
 
