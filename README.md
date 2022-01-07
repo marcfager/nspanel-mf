@@ -44,3 +44,4 @@ Somewhat in a priority order:
   - Use alarm status from HA to put the panel into Alarm mode (disable panel with beautiful graphic) when alarm is turned on.
   - Add equipment page for vacuum robot, lawn mower robot, AC.
   - Add electrical power monitoring page
+  - Add notification page (push notifications from HA to pop up on the screen).
