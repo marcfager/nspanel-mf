@@ -8,8 +8,11 @@ I created this based on information shared in the following forum threads:
 [ESPHome thread](https://github.com/esphome/feature-requests/issues/1469)
 
 The HMI theme is based on the [Lovelace iOS dark mode theme](https://github.com/basnijholt/lovelace-ios-dark-mode-theme)
+
 Weather icons are from [simple weather card](https://github.com/kalkih/simple-weather-card)
+
 Other icons are from [Material Design Icons](https://materialdesignicons.com/)
+
 The font is the Ubuntu font.
 
 ## HMI Screenshots
