@@ -26,7 +26,7 @@ The ESPHome config yaml is based on [Masto's example config](https://github.com/
 
 ![Music screen](screenshot-music.png)
 
-![Lights screen](photo-lights.jpg)
+![Lights screen](photo-lights.png)
 
 ![Bootup screen](screenshot-boot.png)
 
