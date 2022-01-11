@@ -2,6 +2,8 @@
 Custom HMI controlled by ESPHome for the Sonoff NSPanel. Includes home screen with weather data and clock, media player card, control of 8 lights (easily expandable), bootup screen and disable screen for alarm. Audible notifications can be sent from Home Assistant that remain visible on the screen for a set period of time. More to come.
 All content on the screen can be controlled from ESPHome and is very easily integrated to Home Assistant.
 
+[Youtube video](https://www.youtube.com/watch?v=2e5-53lGF94)
+
 ## Credits
 I created this based on information shared in the following forum threads:
 [Home assistant thread](https://community.home-assistant.io/t/sonoff-nspanel-smart-scene-wall-switch-by-itead-coming-soon-on-kickstarter/332962/), 
@@ -35,6 +37,8 @@ The ESPHome config yaml is based on [Masto's example config](https://github.com/
 ![Notification screen](screenshot-notification.png)
 
 ![HA Sensors](screenshot-ha-sensors.png)
+
+
 
 _Not all exposed entities are visible on the screenshot._ 
 _The items look slightly poorly centered. This is to cope with the issue that the physical screen is larger than the visible area._
