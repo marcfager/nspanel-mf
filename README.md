@@ -1,5 +1,5 @@
 # NSPanel-MF
-Custom HMI controlled by ESPHome for the Sonoff NSPanel. Includes media player card and home screen with weather data and clock. More to come.
+Custom HMI controlled by ESPHome for the Sonoff NSPanel. Includes home screen with weather data and clock, media player card, control of 8 lights (easily expandable), bootup screen and disable screen for alarm. Audible notifications can be sent from Home Assistant that remain visible on the screen for a set period of time. More to come.
 All content on the screen can be controlled from ESPHome and is very easily integrated to Home Assistant.
 
 ## Credits
@@ -7,9 +7,13 @@ I created this based on information shared in the following forum threads:
 [Home assistant thread](https://community.home-assistant.io/t/sonoff-nspanel-smart-scene-wall-switch-by-itead-coming-soon-on-kickstarter/332962/), 
 [ESPHome thread](https://github.com/esphome/feature-requests/issues/1469)
 
+Significant parts of the ESPHome config and ideas in the HMI are from [Masto](https://github.com/masto/NSPanel-Demo-Files/).
+
 The HMI theme is based on the [Lovelace iOS dark mode theme](https://github.com/basnijholt/lovelace-ios-dark-mode-theme)
 
 Weather icons are from [simple weather card](https://github.com/kalkih/simple-weather-card)
+
+Light icons on the Lights-page are from [Hass BHA Icons](https://github.com/hulkhaugen/hass-bha-icons)
 
 Other icons are from [Material Design Icons](https://materialdesignicons.com/)
 
@@ -22,14 +26,24 @@ The ESPHome config yaml is based on [Masto's example config](https://github.com/
 
 ![Music screen](screenshot-music.png)
 
+![Lights screen](photo-lights.jpg)
+
+![Bootup screen](screenshot-boot.png)
+
+![Alarm screen](screenshot-alarm.png)
+
+![Notification screen](screenshot-notification.png)
+
 ![HA Sensors](screenshot-ha-sensors.png)
 
 _Not all exposed entities are visible on the screenshot._ 
 _The items look slightly poorly centered. This is to cope with the issue that the physical screen is larger than the visible area._
 
 ## Usage
-The weather entities, media entities etc. are selected in the ESPHome config. You can navigate between screens by touching the sides (right or left) in the center on the screen. The media player is on the left side, the right side contains few test pages that will be used later.
-The config that is not done in ESPHome is done in Home Assistant
+The weather entities, media entities, lights etc. are selected in the ESPHome config. You can navigate between screens by touching the sides (right or left) in the center on the screen. The media player is on the left side, and the lights on the right side.
+The config that is not done in ESPHome is done in Home Assistant.
+
+In the example config a big part of the config is done in the ESPHome YAML file. If you prefer to set-and-forget it, you can replace the media entities, weather entities, light entities etc. with HA templates or input_text fields. That way you can re-configure everything directly from Home Assistant.
 
 Any information and/or code found here is used on your own risk.
 
@@ -45,11 +59,7 @@ Any information and/or code found here is used on your own risk.
 
 ## TODO
 Somewhat in a priority order:
-- Page for controlling lights, flexibly configured from HA.
 - Control screen further:
   - Dim screen when not used and wake up when used. Further control from Home Assistant
-  - Use Home Assistant-screen before the NSPanel is connected to Home Assistant
-  - Use alarm status from HA to put the panel into Alarm mode (disable panel with beautiful graphic) when alarm is turned on.
-  - Add equipment page for vacuum robot, lawn mower robot, AC.
-  - Add electrical power monitoring page
-  - Add notification page (push notifications from HA to pop up on the screen).
+- Add equipment page for vacuum robot, lawn mower robot, AC.
+- Add electrical power monitoring page
