@@ -3,6 +3,7 @@ Custom HMI controlled by ESPHome for the Sonoff NSPanel. Includes home screen wi
 All content on the screen can be controlled from ESPHome and is very easily integrated to Home Assistant.
 
 [Youtube video](https://www.youtube.com/watch?v=2e5-53lGF94)
+[Youtube video of notification function](https://youtu.be/fmObpwFJT7o)
 
 ## Credits
 I created this based on information shared in the following forum threads:
