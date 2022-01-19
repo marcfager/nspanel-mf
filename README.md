@@ -79,6 +79,9 @@ Any information and/or code found here is used on your own risk.
 - Fixed so that the weather symbol for sunny after sunset is clear-night
 - Added Home.text1 and Home.text2 with a small font to the lower right corner of the Home page. I use them to display the fuel/charging state and ranges of our cars.
 
+## Breaking changes (latest revision 2022-01-19)
+Component numbering changed as the old navigation hotspots have been removed. Affects Music and Light page.
+
 
 ## TODO
 Somewhat in a priority order:
