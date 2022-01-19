@@ -1,4 +1,5 @@
 # NSPanel YAML by marcfager. Please check github for credits: https://github.com/marcfager/nspanel-mf
+# Version 2022-01-19
 
 substitutions:
   # Name the device and it's entities
@@ -17,24 +18,6 @@ wifi:
   ssid: !secret ssid
   password: !secret wifi_pwd
   fast_connect: !secret wifi_fast_connect
-
-# Time component that fetches time from Home Assistant and updates the display once a minute and when the display is ready at bootup (and time is available).
-time:
-  - platform: homeassistant
-    id: homeassistant_time
-    on_time:
-      - seconds: 0
-        minutes: /1
-        then:
-          - lambda: id(disp1).set_component_text_printf("Home.time", "%02i:%02i", id(homeassistant_time).now().hour, id(homeassistant_time).now().minute);
-          - lambda: id(disp1).set_component_text_printf("Home.date", "%i-%02i-%02i", id(homeassistant_time).now().year, id(homeassistant_time).now().month, id(homeassistant_time).now().day_of_month);
-    on_time_sync:
-        then:
-          - wait_until:
-              switch.is_on: nextion_init
-          - lambda: id(disp1).set_component_text_printf("Home.time", "%02i:%02i", id(homeassistant_time).now().hour, id(homeassistant_time).now().minute);
-          - lambda: id(disp1).set_component_text_printf("Home.date", "%i-%02i-%02i", id(homeassistant_time).now().year, id(homeassistant_time).now().month, id(homeassistant_time).now().day_of_month);
-          
 
 # API. Add api_pwd to your secrets.yaml.
 api:
@@ -69,13 +52,54 @@ api:
             id(disp1).send_command_printf("page 6");
         - rtttl.play: "twobits:d=4,o=5,b=220:c6,8g,8g,a,g,p,b,c6"
         - delay: 15s
-        - lambda: id(disp1).send_command_printf("page 0");
+        - lambda: |-
+            id(disp1).send_command_printf("page 0");
+            id(disp1).set_component_text_printf("Notifications.head", " ");
+            id(disp1).set_component_text_printf("Notifications.body", " ");
+            id(disp1).send_command_printf("page 0");
     # Service to send a command directly to the display. Useful for testing
     - service: send_command
       variables:
         cmd: string
       then:
         - lambda: 'id(disp1).send_command_printf("%s", cmd.c_str());'
+    # Service to show a QR code on the display (ex. for WiFi password)
+    - service: display_qr
+      variables:
+        qrdata: string
+      then:
+        - lambda: |-
+            id(disp1).set_component_text_printf("QR.qr0", "%s", qrdata.c_str());
+            id(disp1).send_command_printf("page 7");
+        - delay: 15s
+        - lambda: |-
+            id(disp1).send_command_printf("page 0");
+            id(disp1).send_command_printf("QR.qr0.txt=");
+            id(disp1).send_command_printf("page 0");
+    # Service to wake up screen
+    - service: wakeup_screen
+      then:
+        - lambda: |-
+            id(disp1).send_command_printf("page 0");
+
+
+# Time component that fetches time from Home Assistant and updates the display once a minute and when the display is ready at bootup (and time is available).
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      - seconds: 0
+        minutes: /1
+        then:
+          - lambda: id(disp1).set_component_text_printf("Home.time", "%02i:%02i", id(homeassistant_time).now().hour, id(homeassistant_time).now().minute);
+          - lambda: id(disp1).set_component_text_printf("Home.date", "%i-%02i-%02i", id(homeassistant_time).now().year, id(homeassistant_time).now().month, id(homeassistant_time).now().day_of_month);
+    on_time_sync:
+        then:
+          - wait_until:
+              switch.is_on: nextion_init
+          - lambda: id(disp1).set_component_text_printf("Home.time", "%02i:%02i", id(homeassistant_time).now().hour, id(homeassistant_time).now().minute);
+          - lambda: id(disp1).set_component_text_printf("Home.date", "%i-%02i-%02i", id(homeassistant_time).now().year, id(homeassistant_time).now().month, id(homeassistant_time).now().day_of_month);
+          
 
 # Logger. Disable the temperature sensor etc. to focus on the HMI development
 logger:
@@ -154,38 +178,38 @@ binary_sensor:
   - platform: nextion
     name: $device_name Music voldown
     page_id: 1
-    component_id: 9
+    component_id: 7
     
   - platform: nextion
     name: $device_name Music volup
     page_id: 1
-    component_id: 10
+    component_id: 8
     
   - platform: nextion
     name: $device_name Playlist cocktail
     page_id: 1
-    component_id: 11
+    component_id: 9
 
   - platform: nextion
     name: $device_name Playlist food
     page_id: 1
-    component_id: 12
+    component_id: 10
     
   - platform: nextion
     name: $device_name Playlist dance
     page_id: 1
-    component_id: 13
+    component_id: 11
 
   - platform: nextion
     name: $device_name Playlist note
     page_id: 1
-    component_id: 14    
+    component_id: 12    
     
   # Buttons on the Lights page
   - platform: nextion
     name: $device_name Light 0 button
     page_id: 2
-    component_id: 21
+    component_id: 17
     on_click:
       - homeassistant.service:
           service: light.toggle
@@ -195,7 +219,7 @@ binary_sensor:
   - platform: nextion
     name: $device_name Light 1 button
     page_id: 2
-    component_id: 22
+    component_id: 18
     on_click:
       - homeassistant.service:
           service: light.toggle
@@ -205,7 +229,7 @@ binary_sensor:
   - platform: nextion
     name: $device_name Light 2 button
     page_id: 2
-    component_id: 23
+    component_id: 19
     on_click:
       - homeassistant.service:
           service: light.toggle
@@ -215,7 +239,7 @@ binary_sensor:
   - platform: nextion
     name: $device_name Light 3 button
     page_id: 2
-    component_id: 24
+    component_id: 20
     on_click:
       - homeassistant.service:
           service: switch.toggle
@@ -225,7 +249,7 @@ binary_sensor:
   - platform: nextion
     name: $device_name Light 4 button
     page_id: 2
-    component_id: 25
+    component_id: 21
     on_click:
       - homeassistant.service:
           service: light.toggle
@@ -235,7 +259,7 @@ binary_sensor:
   - platform: nextion
     name: $device_name Light 5 button
     page_id: 2
-    component_id: 26
+    component_id: 22
     on_click:
       - homeassistant.service:
           service: switch.toggle
@@ -245,7 +269,7 @@ binary_sensor:
   - platform: nextion
     name: $device_name Light 6 button
     page_id: 2
-    component_id: 27
+    component_id: 23
     on_click:
       - homeassistant.service:
           service: light.toggle
@@ -255,12 +279,12 @@ binary_sensor:
   - platform: nextion
     name: $device_name Light 7 button
     page_id: 2
-    component_id: 28
+    component_id: 24
     on_click:
       - homeassistant.service:
           service: switch.toggle
           data:
-            entity_id: switch.oscar
+            entity_id: switch.oscars
 
 
 output:
@@ -315,6 +339,43 @@ switch:
       - lambda: id(disp1).send_command_printf("page 5");
     on_turn_off:
       - lambda: id(disp1).send_command_printf("page 0");
+
+  # Disable Dim-down-function on screen
+  - platform: template
+    name: $device_name Disable dim-down
+    id: disp1_disdim
+    restore_state: true
+    assumed_state: off
+    optimistic: true
+    on_turn_on:
+      - lambda: id(disp1).send_command_printf("Home.disdim.val=1");
+    on_turn_off:
+      - lambda: id(disp1).send_command_printf("Home.disdim.val=0");
+
+  # Disable Screensaver-function on screen
+  - platform: template
+    name: $device_name Disable screensaver
+    id: disp1_dissleep
+    restore_state: true
+    assumed_state: off
+    optimistic: true
+    on_turn_on:
+      - lambda: id(disp1).send_command_printf("Home.dissleep.val=1");
+    on_turn_off:
+      - lambda: id(disp1).send_command_printf("Home.dissleep.val=0");
+
+  # Disable Go to Home page-function on screen
+  - platform: template
+    name: $device_name Disable go to home
+    id: disp1_disgth
+    restore_state: true
+    assumed_state: off
+    optimistic: true
+    on_turn_on:
+      - lambda: id(disp1).send_command_printf("Home.disgth.val=1");
+    on_turn_off:
+      - lambda: id(disp1).send_command_printf("Home.disgth.val=0");
+
 
 # Rtttl function for buzzer
 rtttl:
@@ -380,6 +441,7 @@ sensor:
     name: $device_name Current display page
     id: disp1_current_page
     variable_name: dp
+    update_interval: 1s
 
   # Temperature outside, fetched from HA
   - platform: homeassistant
@@ -488,6 +550,9 @@ text_sensor:
               symbol=17;
             } else if (id(weather_symbol).state == "sunny") {
               symbol=18;
+              if (id(sun_sun).state == "below_horizon") {
+                symbol = 6;
+              }
             } else if (id(weather_symbol).state == "windy" || id(weather_symbol).state == "windy-variant") {
               symbol=19;              
             }
@@ -677,29 +742,50 @@ text_sensor:
 
   # Light setup, eighth light. If you want to leave a light out, just comment out the section for the light and name.
   - platform: homeassistant
-    id: oscar
-    entity_id: switch.oscar
+    id: oscars
+    entity_id: switch.oscars
     on_value:
       then:
         - wait_until:
             switch.is_on: nextion_init
         - lambda: |-
             int symbol = 31;
-            if (id(oscar).state == "off") {
+            if (id(oscars).state == "off") {
               symbol=30;
             }
             id(disp1).send_command_printf("Lights.light7.pic=%i", symbol);
 
   # Light setup, eighths light's name
   - platform: homeassistant
-    id: oscar_name
-    entity_id: switch.oscar
+    id: oscarsdb_name
+    entity_id: switch.oscars
     attribute: friendly_name
     on_value:
       then:
         - wait_until:
             switch.is_on: nextion_init
-        - lambda: id(disp1).set_component_text_printf("Lights.light7t", "%s", id(oscar_name).state.c_str());
+        - lambda: id(disp1).set_component_text_printf("Lights.light7t", "%s", id(oscarsdb_name).state.c_str());
+       
+  # Home page, text line 1 (lower right part of screen)
+  - platform: homeassistant
+    id: home_text1
+    entity_id: sensor.nspanel_v90_range
+    on_value:
+      then:
+        - wait_until:
+            switch.is_on: nextion_init
+        - lambda: id(disp1).set_component_text_printf("Home.text1", "%s", id(home_text1).state.c_str());
+        
+  # Home page, text line 2 (lower right part of screen)
+  - platform: homeassistant
+    id: home_text2
+    entity_id: sensor.nspanel_id4_range
+    on_value:
+      then:
+        - wait_until:
+            switch.is_on: nextion_init
+        - lambda: id(disp1).set_component_text_printf("Home.text2", "%s", id(home_text2).state.c_str());
+
 
 number:
   # Screen brightness
@@ -715,7 +801,22 @@ number:
     set_action:
       then:
         - lambda: 'id(disp1).set_backlight_brightness(x/100);'
-      
+        - lambda: 'id(disp1).send_command_printf("Home.brightness.val=%i", int(x));'
+
+  # Screen brightness dimmed down
+  - platform: template
+    name: $device_name Brightness dimdown
+    id: brightness_dim
+    entity_category: config
+    unit_of_measurement: '%'
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 1
+    set_action:
+      then:
+        - lambda: 'id(disp1).send_command_printf("Home.brightdd.val=%i", int(x));'
+
       
 # Configure the screen itself
 display:
@@ -726,6 +827,8 @@ display:
     # A little fun...
     on_setup:
       then:
+        # Enable 1 light page (up to 4 available)
+        - lambda: id(disp1).send_command_printf("Lights.pages.val=1");
         - number.set:
             id: brightness
             value: 30
